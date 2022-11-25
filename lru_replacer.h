@@ -9,23 +9,27 @@
 
 #pragma once
 
-
-#include <memory>
-#include <unordered_map>
-#include <mutex>
 #include "buffer/replacer.h"
+#include "hash/extendible_hash.h"
+#include <memory>
+#include <mutex>
+#include <unordered_map>
 
 using namespace std;
+
 namespace scudb {
 
 template <typename T> class LRUReplacer : public Replacer<T> {
-  struct Node {
+  // 定义页面结构
+  struct Node                   
+  {
     Node() {};
-    Node(T val) : val(val) {};
-    T val;
-    shared_ptr<Node> prev;//指向上一个节点
-    shared_ptr<Node> next;//指向下一个节点
+    Node(T value) : value(value) {};   // 初始化列表
+    T value;
+    shared_ptr<Node> pre;
+    shared_ptr<Node> next;
   };
+
 public:
   // do not change public interface
   LRUReplacer();
@@ -41,13 +45,11 @@ public:
   size_t Size();
 
 private:
-  //队列头尾指针
+  // add your member variables here
   shared_ptr<Node> head;
   shared_ptr<Node> tail;
-  //用unordered_map存储(key,对应节点指针),方便通过key查找对应节点
-  unordered_map<T,shared_ptr<Node>> map;
-  mutable mutex latch;
-  // add your member variables here
+  unordered_map<T, shared_ptr<Node>> map;    //unordered_map 容器和 map 容器仅有一点不同，即 map 容器中存储的数据是有序的，而 unordered_map 容器中是无序的。
+  mutable mutex latch; 
 };
 
-}
+} // namespace scudb
